@@ -1,0 +1,137 @@
+{
+    "name": "Super Mario World",
+    "short_name": "SMW",
+    "slug": "smw",
+    "url": "/smw",
+    "data_url": "/smw/data",
+    "image": "https://racetime.gg/media/Super_Mario_World-285x380.jpg",
+    "info": "",
+    "streaming_required": false,
+    "owners": [
+        {
+            "id": "pRbOXG3yAY3ZVKq1",
+            "full_name": "Umari0#9772",
+            "name": "Umari0",
+            "discriminator": "9772",
+            "url": "/user/pRbOXG3yAY3ZVKq1",
+            "avatar": null,
+            "pronouns": "he/him",
+            "flair": "moderator",
+            "twitch_name": "umari0",
+            "twitch_display_name": "Umari0",
+            "twitch_channel": "https://www.twitch.tv/umari0",
+            "can_moderate": true
+        }
+    ],
+    "moderators": [
+        {
+            "id": "NJrM6PoYP53Rdm5v",
+            "full_name": "bluesaint#1473",
+            "name": "bluesaint",
+            "discriminator": "1473",
+            "url": "/user/NJrM6PoYP53Rdm5v",
+            "avatar": "https://racetime.gg/media/66a83c1329cbeef95e4fcf17b3fcba1eaf9dfbff_full.jpg",
+            "pronouns": null,
+            "flair": "moderator",
+            "twitch_name": "bluesaint",
+            "twitch_display_name": "bluesaint",
+            "twitch_channel": "https://www.twitch.tv/bluesaint",
+            "can_moderate": true
+        },
+        {
+            "id": "AEk8wpok5GB5KQyV",
+            "full_name": "Idabz#9465",
+            "name": "Idabz",
+            "discriminator": "9465",
+            "url": "/user/AEk8wpok5GB5KQyV",
+            "avatar": null,
+            "pronouns": null,
+            "flair": "moderator",
+            "twitch_name": "idabz_",
+            "twitch_display_name": "iDabz_",
+            "twitch_channel": "https://www.twitch.tv/idabz_",
+            "can_moderate": true
+        },
+        {
+            "id": "AEk8wpokjN35KQyV",
+            "full_name": "IsoFrieze",
+            "name": "IsoFrieze",
+            "discriminator": null,
+            "url": "/user/isofrieze",
+            "avatar": "https://racetime.gg/media/corgi-01av.png",
+            "pronouns": "he/him",
+            "flair": "supporter moderator",
+            "twitch_name": "isofrieze",
+            "twitch_display_name": "IsoFrieze",
+            "twitch_channel": "https://www.twitch.tv/isofrieze",
+            "can_moderate": true
+        },
+        {
+            "id": "yMewn83VV83405Jv",
+            "full_name": "Sten",
+            "name": "Sten",
+            "discriminator": null,
+            "url": "/user/sten",
+            "avatar": "https://racetime.gg/media/Portrait_FINAL_2020-07-06_Still.png",
+            "pronouns": "he/him",
+            "flair": "supporter moderator",
+            "twitch_name": "sten",
+            "twitch_display_name": "Sten",
+            "twitch_channel": "https://www.twitch.tv/sten",
+            "can_moderate": true
+        },
+        {
+            "id": "jb8GPMWw6eo1nEk0",
+            "full_name": "WKerrick#7319",
+            "name": "WKerrick",
+            "discriminator": "7319",
+            "url": "/user/jb8GPMWw6eo1nEk0",
+            "avatar": null,
+            "pronouns": null,
+            "flair": "moderator",
+            "twitch_name": "wkerrick",
+            "twitch_display_name": "WKerrick",
+            "twitch_channel": "https://www.twitch.tv/wkerrick",
+            "can_moderate": true
+        }
+    ],
+    "goals": [
+        "11 Exit",
+        "11 Exit No Cape",
+        "96 Exit",
+        "All Castles",
+        "All Castles No Cape",
+        "All Switches",
+        "All Switches No Cape",
+        "No cape, no starworld",
+        "No Starworld",
+        "Small Only"
+    ],
+    "current_races": [
+        {
+            "name": "smw/comic-baby-9383",
+            "status": {
+                "value": "finished",
+                "verbose_value": "Finished",
+                "help_text": "This race has been completed"
+            },
+            "url": "/smw/comic-baby-9383",
+            "data_url": "/smw/comic-baby-9383/data",
+            "goal": {
+                "name": "Small Only",
+                "custom": false
+            },
+            "info": "",
+            "entrants_count": 4,
+            "entrants_count_finished": 4,
+            "entrants_count_inactive": 0,
+            "opened_at": "2022-03-20T11:50:38.007Z",
+            "started_at": null,
+            "time_limit": "P1DT00H00M00S"
+        }
+    ],
+    "emotes": {
+        "BlameDyn": "https://racetime.gg/media/BlameDyn.png",
+        "BlameTrez": "https://racetime.gg/media/BlameTrez.png"
+    }
+}

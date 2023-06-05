@@ -1,0 +1,22 @@
+{
+    "id": "xldAMBlqvY3aOP57",
+    "full_name": "Nanahuse#2723",
+    "name": "Nanahuse",
+    "discriminator": "2723",
+    "url": "/user/xldAMBlqvY3aOP57",
+    "avatar": "https://racetime.gg/media/icon_SbcOLiM.png",
+    "pronouns": null,
+    "flair": "",
+    "twitch_name": "nanahuse",
+    "twitch_display_name": "\u4e03\u4f0f",
+    "twitch_channel": "https://www.twitch.tv/nanahuse",
+    "can_moderate": false,
+    "stats": {
+        "joined": 3,
+        "first": 1,
+        "second": 0,
+        "third": 1,
+        "forfeits": 1
+    },
+    "teams": []
+}
