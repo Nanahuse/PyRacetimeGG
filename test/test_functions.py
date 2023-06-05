@@ -1,3 +1,8 @@
+# Copyright (c) 2023 Nanahuse
+# This software is released under the MIT License
+# https://github.com/Nanahuse/PyRacetimeGG/blob/main/LICENSE
+
+
 def test_fetch_user():
     from pyracetimegg import fetch_user
 

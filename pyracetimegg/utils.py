@@ -1,3 +1,7 @@
+# Copyright (c) 2023 Nanahuse
+# This software is released under the MIT License
+# https://github.com/Nanahuse/PyRacetimeGG/blob/main/LICENSE
+
 from datetime import datetime, timedelta
 from io import BytesIO
 from json import loads
