@@ -31,3 +31,5 @@ from pyracetimegg.functions import (
     search_user,
     search_user_by_term,
 )
+
+from pyracetimegg.utils import REQUEST_THROTTLE

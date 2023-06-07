@@ -5,17 +5,41 @@
 from datetime import datetime, timedelta
 from io import BytesIO
 from json import loads
+from time import sleep, time
 from zoneinfo import ZoneInfo
 from PIL import Image
 from requests import get
 
 
+class RequestThrottle:
+    def __init__(self) -> None:
+        self._request_throttling_per_second = 10
+        self._time = time()
+
+    def set_request_throttling_per_second(self, number: int):
+        if number <= 0:
+            ValueError(f"number should be over 0, but number={number}")
+        self._request_throttling_per_second = number
+
+    def wait(self):
+        time_diff = time() - self._time
+        sleep_time = 1 / self._request_throttling_per_second - time_diff
+        if sleep_time > 0:
+            sleep(sleep_time)
+        self._time = time()
+
+
+def throttling_request(url):
+    REQUEST_THROTTLE.wait()
+    return get(url)
+
+
 def fetch_json(url: str):
-    return loads(get(url).text)
+    return loads(throttling_request(url).text)
 
 
 def fetch_image_from_url(url: str):
-    return Image.open(BytesIO(get(url).content))
+    return Image.open(BytesIO(throttling_request(url).content))
 
 
 def joint_url(*args: str):
@@ -67,3 +91,6 @@ def str2timedelta(string: str):
         day, hour, min, second = parse(string[1:], ("DT", "H", "M", "S"))
         milli = "0"
     return timedelta(days=int(day), hours=int(hour), minutes=int(min), seconds=int(second), milliseconds=int(milli[:3]))
+
+
+REQUEST_THROTTLE = RequestThrottle()

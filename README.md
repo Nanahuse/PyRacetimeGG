@@ -6,9 +6,14 @@ Please refer to the following documents
   ("All races" is not implemented in this library)
 
 # index
+- [install](#install)
 - [functions](#functions)
 - [How to know id or slug](#how-to-know-id-or-slug)
 
+# install
+```
+pip install git+https://github.com/Nanahuse/PyRacetimeGG
+```
 
 # functions
 ## fetch_user
@@ -72,3 +77,18 @@ It is a form of two words and a four-digit number joined by a hyphen. (word-word
 
 1. Check race page URL ( e.g. https://racetime.gg/smw/comic-baby-9383 )
 1. The last string is race slug ( e.g. comic-baby-9383).
+
+
+# Tips
+## Connect other racetimeGG site
+All fetch function have a site_url argument.
+When you connect other racetimeGG site, use site_url argument. 
+
+# Tips
+## Request Throttle
+This library has a request throttle (default 10[/s])
+When you change request limit, use following code.
+```python
+from pyracetimegg import REQUEST_THROTTLE
+REQUEST_THROTTLE.set_request_throttling_per_second(number: int)
+```

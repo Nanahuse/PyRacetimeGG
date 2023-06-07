@@ -4,7 +4,6 @@
 
 from json import JSONDecodeError
 import re
-import time
 from pyracetimegg.objects import (
     User,
     UserDetail,
@@ -142,7 +141,6 @@ def _fetch_past_races(url_base: str, limit_num: int):
             flag = False
         else:
             i_page += 1
-            time.sleep(0.05)
 
 
 def fetch_past_user_races(user: User | str, limit_num: int = 100, *, site_url: str = "https://racetime.gg/"):
