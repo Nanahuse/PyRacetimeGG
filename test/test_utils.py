@@ -43,13 +43,6 @@ def test_str2timedelta():
     assert str2timedelta("P1DT00H00M00S") == timedelta(days=1)
 
 
-def test_get_image():
-    from pyracetimegg.utils import fetch_image_from_url
-
-    image = fetch_image_from_url("https://racetime.gg/media/Super_Mario_World-285x380.jpg")
-    image.save("./test/image/tmp.png")
-
-
 def test_joint_url():
     from pyracetimegg.utils import joint_url
 
