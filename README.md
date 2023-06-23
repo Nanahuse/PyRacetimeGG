@@ -1,7 +1,11 @@
+[![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
 # PyRacetimeGG
-This is wrapper library of racetime.gg Public API endpoints. ([Link API document](https://github.com/racetimeGG/racetime-app/wiki/Public-API-endpoints))  
+This is wrapper library of racetime.gg Public API endpoints.   
+[API document](https://github.com/racetimeGG/racetime-app/wiki/Public-API-endpoints)
+
 This library has the following features.
-  
 * Object-mapping style wrapper. Data automatically fetching when it is needed. And store the data in a cache to accelerate subsequent access.
 * Complete type information. Autocomplete is work well at your editor.
 
