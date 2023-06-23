@@ -28,12 +28,12 @@ class APIBase(object):
     def site_url(self):
         return self.__site_url
 
-    def _get_instance(self, type_: Type[iObject], id: ID):
+    def get_instance(self, type_: Type[iObject], id: ID):
         if not issubclass(type_, iObject):
             raise ValueError()
         return type_(self, id)
 
-    def _store_data(self, type_: Type[iObject], id: ID, data_dict: dict[TAG, Any]):
+    def store_data(self, type_: Type[iObject], id: ID, data_dict: dict[TAG, Any]):
         """
         store in cache
 
@@ -48,9 +48,9 @@ class APIBase(object):
         if id not in self.__cache[name]:
             self.__cache[name][id] = dict()
         self.__cache[name][id].update(data_dict)
-        return self._get_instance(type_, id)
+        return self.get_instance(type_, id)
 
-    def _clear(self, instance: iObject):
+    def clear(self, instance: iObject):
         """
         clear instance cached data
 
@@ -62,7 +62,7 @@ class APIBase(object):
         except KeyError:
             pass
 
-    def _get_data_from_cache(self, instance: iObject, tag: TAG) -> Any:
+    def get_data_from_cache(self, instance: iObject, tag: TAG) -> Any:
         """
         get cached data
 
@@ -75,38 +75,38 @@ class APIBase(object):
         except KeyError:
             raise
 
-    def _get_url(self, *paths: str):
-        return joint_url(self.__site_url, *paths)
+    def get_url(self, *paths: str):
+        return joint_url(self.site_url, *paths)
 
-    def _fetch(self, url: str):
+    def fetch(self, url: str):
         return self.__throttled_request.get(url)
 
-    def _fetch_json(self, url: str) -> dict:
+    def fetch_json(self, url: str) -> dict:
         """
         Args:
             url (str): FULL_URL
         Returns:
             dict: json data
         """
-        return loads(self._fetch(url).text)
+        return self.__throttled_request.get_json(url)
 
-    def _fetch_json_from_site(self, *paths: str):
+    def fetch_json_from_site(self, *paths: str):
         """
         Args:
             path (str): paths without site_url
         Returns:
             dict: json data
         """
-        return self._fetch_json(self._get_url(*paths))
+        return self.fetch_json(self.get_url(*paths))
 
-    def _fetch_image_from_url(self, url: str):
+    def fetch_image_from_url(self, url: str):
         """
         Args:
             url (str): FULL_URL
         Returns:
             dict: json data
         """
-        return Image.open(BytesIO(self._fetch(url).content))
+        return self.__throttled_request.get_image(url)
 
 
 class iObject(ABC):
@@ -114,11 +114,11 @@ class iObject(ABC):
         if not isinstance(id, ID):
             ValueError("id should be ID type")
         self._api = api
-        self._id = id
+        self.__id = id
 
     @property
     def id(self):
-        return self._id
+        return self.__id
 
     @classmethod
     @property
@@ -130,7 +130,7 @@ class iObject(ABC):
         clear itself from cache
         """
         try:
-            self._api._clear(self)
+            self._api.clear(self)
         except KeyError:
             pass
 
@@ -141,7 +141,7 @@ class iObject(ABC):
         if tag not in dir(self):
             raise KeyError("wrong tag")
         try:
-            return self._api._get_data_from_cache(self, tag)
+            return self._api.get_data_from_cache(self, tag)
         except KeyError:
             pass
         return self._fetch_from_api(tag)
@@ -191,13 +191,21 @@ class iObject(ABC):
 
 class ThrottledRequest(object):
     def __init__(self, request_per_second: int) -> None:
-        self._request_cycletime = 1 / request_per_second
-        self._time = time()
+        self.__request_cycletime = 1 / request_per_second
+        self.__time = 0
 
     def get(self, url: str):
-        time_diff = time() - self._time
-        sleep_time = self._request_cycletime - time_diff
+        time_diff = time() - self.__time
+        sleep_time = self.__request_cycletime - time_diff
         if sleep_time > 0:
             sleep(sleep_time)
-        self._time = time()
+            self.__time += self.__request_cycletime
+        else:
+            self.__time += time()
         return get(url)
+
+    def get_json(self, url: str) -> dict[str, Any]:
+        return loads(self.get(url).text)
+
+    def get_image(self, url: str):
+        return Image.open(BytesIO(self.get(url).content))

@@ -6,9 +6,9 @@ import re
 from pyracetimegg.object_mapping import APIBase
 
 
-class RacetimeGGAPI(APIBase):
+class RacetimeGGAPI(object):
     def __init__(self, site_url: str = "https://racetime.gg/", request_per_second: int = 1) -> None:
-        super().__init__(site_url, request_per_second)
+        self.__api = APIBase(site_url, request_per_second)
 
     def search_user(self, *, name: str | None = None, discriminator: str | None = None):
         """
@@ -41,8 +41,8 @@ class RacetimeGGAPI(APIBase):
             case _:
                 ValueError("must be set name or discriminator")
 
-        json_data = self._fetch_json_from_site(f"user/search?{query}")
-        return tuple(User._load_from_json(self, tmp) for tmp in json_data["results"])
+        json_data = self.__api.fetch_json_from_site(f"user/search?{query}")
+        return tuple(User._load_from_json(self.__api, tmp) for tmp in json_data["results"])
 
     def search_user_by_term(self, term: str):
         """
@@ -60,8 +60,19 @@ class RacetimeGGAPI(APIBase):
         """
         from pyracetimegg.objects.user import User
 
-        json_data = self._fetch_json_from_site(f"user/search?term={term}")
-        return tuple(User._load_from_json(self, tmp) for tmp in json_data["results"])
+        json_data = self.__api.fetch_json_from_site(f"user/search?term={term}")
+        return tuple(User._load_from_json(self.__api, tmp) for tmp in json_data["results"])
+
+    def fetch_all_races(self):
+        """
+        all open and ongoing races
+
+        https://github.com/racetimeGG/racetime-app/wiki/Public-API-endpoints#all-races
+        """
+        from pyracetimegg.objects.race import Race
+
+        json_data = self.__api.fetch_json_from_site("races/data")
+        return tuple(Race._load_from_json(self.__api, tmp) for tmp in json_data["races"])
 
     def fetch_user(self, user_id: str):
         """
@@ -72,7 +83,7 @@ class RacetimeGGAPI(APIBase):
         """
         from pyracetimegg.objects.user import User
 
-        user: User = self._get_instance(User, user_id)
+        user: User = self.__api.get_instance(User, user_id)
         user.load("name")
         return user
 
@@ -85,7 +96,7 @@ class RacetimeGGAPI(APIBase):
         """
         from pyracetimegg.objects.category import Category
 
-        category: Category = self._get_instance(Category, category_slug)
+        category: Category = self.__api.get_instance(Category, category_slug)
         category.load("name")
         return category
 
@@ -99,16 +110,16 @@ class RacetimeGGAPI(APIBase):
         """
         from pyracetimegg.objects.race import Race
 
-        race: Race = self._get_instance(Race, f"{category_slug}/{race_slug}")
+        race: Race = self.__api.get_instance(Race, f"{category_slug}/{race_slug}")
         race.load("slug")
         return race
 
     def fetch_by_url(self, url: str):
-        if re.fullmatch(self._get_url("user", "[0-9a-zA-Z]+"), url):
+        if re.fullmatch(self.__api.get_url("user", "[0-9a-zA-Z]+"), url):
             return self.fetch_user(url.split("/")[-1])
-        elif re.fullmatch(self._get_url("[0-9a-z-]+"), url):
+        elif re.fullmatch(self.__api.get_url("[0-9a-z-]+"), url):
             return self.fetch_category(url.split("/")[-1])
-        elif re.fullmatch(self._get_url("[0-9a-z-]+/[a-z]+-[a-z]+-[0-9]+"), url):
+        elif re.fullmatch(self.__api.get_url("[0-9a-z-]+/[a-z]+-[a-z]+-[0-9]+"), url):
             category_slug, race_slug = url.split("/")[-2:]
             return self.fetch_race(category_slug, race_slug)
         else:

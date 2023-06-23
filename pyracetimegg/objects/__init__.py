@@ -4,5 +4,6 @@
 
 # flake8: noqa
 
-from .api import RacetimeGGAPI
-from .objects import Emote, Category, LeaderBoardParticipant, Goal, PastRaces, Race, User
+from .category import Emote, Category, LeaderBoardParticipant
+from .race import Goal, PastRaces, Race
+from .user import User

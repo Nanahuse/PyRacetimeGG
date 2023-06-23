@@ -1,13 +1,15 @@
 from pyracetimegg import RacetimeGGAPI
+from pyracetimegg.object_mapping import APIBase
 
 api = RacetimeGGAPI(request_per_second=3)
+api_json = APIBase("https://racetime.gg", 3)
 
 
 def test_user():
     from pyracetimegg import User
 
     user = api.fetch_user("xldAMBlqvY3aOP57")
-    json_data = api._fetch_json("https://racetime.gg/user/xldAMBlqvY3aOP57/data")
+    json_data = api_json.fetch_json("https://racetime.gg/user/xldAMBlqvY3aOP57/data")
     assert user.id == json_data["id"]
     assert user.url == json_data["url"]
     assert user.data_url == json_data["url"] + "/data"
@@ -44,7 +46,7 @@ def test_pronouns():
 
 def test_category():
     category = api.fetch_category("smw")
-    json_data = api._fetch_json("https://racetime.gg/smw/data")
+    json_data = api_json.fetch_json("https://racetime.gg/smw/data")
 
     assert category.name == "Super Mario World"
     assert category.short_name == "SMW"
@@ -152,7 +154,7 @@ def test_pastrace():
     category = api.fetch_category("smw")
     past_race = category.past_race
 
-    json_data = api._fetch_json_from_site("smw/races/data?show_entrants=yes&page=2")
+    json_data = api_json.fetch_json_from_site("smw/races/data?show_entrants=yes&page=2")
     assert past_race[10].name == json_data["races"][0]["name"]
     assert past_race[10].status is Race.Status.FINISHED
     assert past_race[10].info == json_data["races"][0]["info"]
@@ -164,7 +166,7 @@ def test_pastrace():
 def test_leaderboard():
     leaderboard = api.fetch_category("smw").leaderboard
 
-    json_data = api._fetch_json_from_site("smw/leaderboards/data")
+    json_data = api_json.fetch_json_from_site("smw/leaderboards/data")
 
     assert leaderboard["11 Exit"][0].place == 1
     assert leaderboard["11 Exit"][0].place_ordinal == "1st"

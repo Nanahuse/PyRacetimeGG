@@ -14,7 +14,7 @@ from pyracetimegg.utils import str2datetime, str2timedelta, place2str
 
 if TYPE_CHECKING:
     from typing_extensions import SupportsIndex
-    from pyracetimegg.api import RacetimeGGAPI
+    from pyracetimegg.object_mapping import APIBase
     from pyracetimegg.objects.user import User
     from pyracetimegg.objects.category import Category
 
@@ -75,7 +75,7 @@ class Race(iObject):
         stream_override: bool
 
         @classmethod
-        def from_json(cls, api: RacetimeGGAPI, json_data: dict):
+        def from_json(cls, api: APIBase, json_data: dict):
             from pyracetimegg.objects.user import User
 
             return Race.Entrant(
@@ -260,7 +260,7 @@ class Race(iObject):
         return self._get(currentframe().f_code.co_name)
 
     def _fetch_from_api(self, tag: TAG):
-        json_data = self._api._fetch_json_from_site(self.data_url)
+        json_data = self._api.fetch_json_from_site(self.data_url)
         self._load_from_json(self._api, json_data)
         return self._get(tag)
 
@@ -268,7 +268,7 @@ class Race(iObject):
         self._fetch_from_api("category")
 
     @classmethod
-    def _load_from_json(cls, api: RacetimeGGAPI, json_: dict[TAG, Any]) -> Race:
+    def _load_from_json(cls, api: APIBase, json_: dict[TAG, Any]) -> Race:
         from pyracetimegg.objects.user import User
         from pyracetimegg.objects.category import Category
 
@@ -325,7 +325,7 @@ class Race(iObject):
                     ):
                         output[key] = value
 
-        return api._store_data(Race, id, output)
+        return api.store_data(Race, id, output)
 
 
 class PastRaces(Sequence[Race]):
@@ -350,7 +350,7 @@ class PastRaces(Sequence[Race]):
             self._race_cache[i] = Race._load_from_json(self._api, race)
 
     def _fetch_json(self, page_num: int):
-        return self._api._fetch_json_from_site(self._base_path, f"races/data?show_entrants=yes&page={page_num}")
+        return self._api.fetch_json_from_site(self._base_path, f"races/data?show_entrants=yes&page={page_num}")
 
     def load(self):
         """

@@ -11,7 +11,7 @@ from pyracetimegg.object_mapping import iObject, TAG
 from pyracetimegg.utils import str2timedelta, place2str
 
 if TYPE_CHECKING:
-    from pyracetimegg.api import RacetimeGGAPI
+    from pyracetimegg.object_mapping import APIBase
     from pyracetimegg.objects.user import User
     from pyracetimegg.objects.race import Race, PastRaces, Goal
 
@@ -42,7 +42,7 @@ class Category(iObject):
         return self._get(currentframe().f_code.co_name)
 
     def fetch_image(self):
-        return self._api._fetch_image_from_url(self.image)
+        return self._api.fetch_image_from_url(self.image)
 
     @property
     def info(self) -> str:
@@ -87,10 +87,10 @@ class Category(iObject):
             case "past_race":
                 from pyracetimegg.objects.race import PastRaces
 
-                self._api._store_data(Category, self.id, {"past_race": PastRaces(self)})
+                self._api.store_data(Category, self.id, {"past_race": PastRaces(self)})
                 return self._get(tag)
             case "leaderboard":
-                json_data = self._api._fetch_json_from_site(self.slug, "leaderboards/data")
+                json_data = self._api.fetch_json_from_site(self.slug, "leaderboards/data")
                 leaderboards = dict()
                 for leaderboard in json_data["leaderboards"]:
                     goal_name = leaderboard["goal"]
@@ -98,10 +98,10 @@ class Category(iObject):
                         LeaderBoardParticipant.from_json(self._api, participant)
                         for participant in leaderboard["rankings"]
                     )
-                self._api._store_data(Category, self.id, {"leaderboard": leaderboards})
+                self._api.store_data(Category, self.id, {"leaderboard": leaderboards})
                 return self._get(tag)
             case _:
-                json_data = self._api._fetch_json_from_site(self.data_url)
+                json_data = self._api.fetch_json_from_site(self.data_url)
                 self._load_from_json(self._api, json_data)
                 return self._get(tag)
 
@@ -111,7 +111,7 @@ class Category(iObject):
         self._fetch_from_api("id")
 
     @classmethod
-    def _load_from_json(cls, api: RacetimeGGAPI, json_: dict[TAG, Any]) -> Category:
+    def _load_from_json(cls, api: APIBase, json_: dict[TAG, Any]) -> Category:
         from pyracetimegg.objects.race import Race, Goal
         from pyracetimegg.objects.user import User
 
@@ -133,14 +133,14 @@ class Category(iObject):
                 case _:
                     if key in ("name", "short_name", "image", "info", "streaming_required"):
                         output[key] = value
-        return api._store_data(Category, id, output)
+        return api.store_data(Category, id, output)
 
 
 @dataclass(frozen=True)
 class Emote(iObject):
     name: str
     url: str
-    _api: RacetimeGGAPI
+    _api: APIBase
 
     def fetch_image(self):
         """
@@ -149,7 +149,7 @@ class Emote(iObject):
         Returns:
             PIL.Image.Image: emote image
         """
-        return self._api._fetch_image_from_url(self.url)
+        return self._api.fetch_image_from_url(self.url)
 
 
 @dataclass(frozen=True)
@@ -165,7 +165,7 @@ class LeaderBoardParticipant(object):
         return place2str(self.place)
 
     @classmethod
-    def from_json(cls, api: RacetimeGGAPI, json_data: dict):
+    def from_json(cls, api: APIBase, json_data: dict):
         from pyracetimegg.objects.user import User
 
         return LeaderBoardParticipant(

@@ -11,7 +11,7 @@ from typing import Any, TYPE_CHECKING
 from pyracetimegg.object_mapping import iObject, TAG
 
 if TYPE_CHECKING:
-    from pyracetimegg.api import RacetimeGGAPI
+    from pyracetimegg.object_mapping import APIBase
     from pyracetimegg.objects.race import PastRaces
 
 
@@ -67,7 +67,7 @@ class User(iObject):
         return self._get(currentframe().f_code.co_name)
 
     def fetch_avatar_image(self) -> Image:
-        return self._api._fetch_image_from_url(self.avatar)
+        return self._api.fetch_image_from_url(self.avatar)
 
     @property
     def pronouns(self) -> str:
@@ -110,10 +110,10 @@ class User(iObject):
             case "past_race":
                 from pyracetimegg.objects.race import PastRaces
 
-                self._api._store_data(User, self.id, {"past_race": PastRaces(self)})
+                self._api.store_data(User, self.id, {"past_race": PastRaces(self)})
                 return self._get(tag)
             case _:
-                json_data = self._api._fetch_json_from_site(self.data_url)
+                json_data = self._api.fetch_json_from_site(self.data_url)
                 json_data.setdefault("stats", None)
                 self._load_from_json(self._api, json_data)
                 return self._get(tag)
@@ -123,7 +123,7 @@ class User(iObject):
         self._fetch_from_api("id")
 
     @classmethod
-    def _load_from_json(cls, api: RacetimeGGAPI, json_: dict[TAG, Any]) -> User:
+    def _load_from_json(cls, api: APIBase, json_: dict[TAG, Any]) -> User:
         output = dict()
         for key, value in json_.items():
             match key:
@@ -144,4 +144,4 @@ class User(iObject):
                         "can_moderate",
                     ):
                         output[key] = value
-        return api._store_data(User, json_["id"], output)
+        return api.store_data(User, json_["id"], output)
