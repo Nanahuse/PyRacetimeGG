@@ -5,7 +5,7 @@
 
 from pyracetimegg.api import RacetimeGGAPI
 
-api = RacetimeGGAPI(request_per_second=3)
+api = RacetimeGGAPI(request_per_second=2)
 
 
 def test_search_user():
@@ -34,5 +34,9 @@ def test_fetch_category():
 
 
 def test_fetch_race():
-    race = api.fetch_race("smw", "comic-baby-9383")
+    race = api.fetch_race("smw/comic-baby-9383")
     assert race.goal.name == "Small Only"
+    race2 = api.fetch_race("smw", "comic-baby-9383")  # overload method
+    assert race == race2
+    race3 = api.fetch_race("smw", "mega-dupe-1280")  # overload method
+    assert race != race3

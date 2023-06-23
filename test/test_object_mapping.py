@@ -14,9 +14,9 @@ def test_throtledrequest():
 
     api.get(url)
     start_time = time()
-    for _ in range(request_per_second):
+    for _ in range(request_per_second * 10):
         api.get(url)
-    assert 0.9 < time() - start_time < 1.1
+    assert 9 < time() - start_time < 11
 
 
 def test_APIBase():

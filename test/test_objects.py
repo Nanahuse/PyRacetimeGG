@@ -2,7 +2,7 @@ from pyracetimegg import RacetimeGGAPI
 from pyracetimegg.object_mapping import APIBase
 
 api = RacetimeGGAPI(request_per_second=3)
-api_json = APIBase("https://racetime.gg", 3)
+api_json = APIBase("https://racetime.gg", 2)
 
 
 def test_user():
@@ -153,7 +153,6 @@ def test_pastrace():
 
     category = api.fetch_category("smw")
     past_race = category.past_race
-
     json_data = api_json.fetch_json_from_site("smw/races/data?show_entrants=yes&page=2")
     assert past_race[10].name == json_data["races"][0]["name"]
     assert past_race[10].status is Race.Status.FINISHED

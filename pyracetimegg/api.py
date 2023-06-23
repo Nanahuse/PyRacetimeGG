@@ -3,6 +3,7 @@
 # https://github.com/Nanahuse/PyRacetimeGG/blob/main/LICENSE
 
 import re
+from typing import overload
 from pyracetimegg.object_mapping import APIBase
 
 
@@ -100,17 +101,54 @@ class RacetimeGGAPI(object):
         category.load("name")
         return category
 
+    @overload
+    def fetch_race(self, race_name: str):
+        """
+        https://github.com/racetimeGG/racetime-app/wiki/Public-API-endpoints#race-detail
+
+        Args:
+            race_name (str): you can find at URL.  it looks like xxx/xxx-xxx-xxx
+        """
+        ...
+
+    @overload
     def fetch_race(self, category_slug: str, race_slug: str):
         """
         https://github.com/racetimeGG/racetime-app/wiki/Public-API-endpoints#race-detail
 
         Args:
-            category_slug (str): you can find at URL
-            race_slug (str): you can find at URL
+            category_slug (str): you can find at URL.
+            race_slug (str): you can find at URL. it looks like xxx-xxx-xxx
         """
+        ...
+
+    def fetch_race(self, *args):
         from pyracetimegg.objects.race import Race
 
-        race: Race = self.__api.get_instance(Race, f"{category_slug}/{race_slug}")
+        match len(args):
+            case 1:
+                if not re.fullmatch("[0-9a-z-]+/[a-z]+-[a-z]+-[0-9]+", args[0]):
+                    ValueError(
+                        """race_name is wrong. it looks like xxx/xxx-xxx-xxx.
+                        Plese check https://github.com/Nanahuse/PyRacetimeGG#how-to-know-category-slug"""
+                    )
+                name = args[0]
+            case 2:
+                if not re.fullmatch("[0-9a-z-]+", args[0]):
+                    ValueError(
+                        """category_slug is something wrong.
+                        Plese check https://github.com/Nanahuse/PyRacetimeGG#how-to-know-category-slug"""
+                    )
+                if re.fullmatch("[a-z]+-[a-z]+-[0-9]+", args[1]):
+                    ValueError(
+                        """race_slug is something wrong.
+                        Please check https://github.com/Nanahuse/PyRacetimeGG#how-to-know-race-slug"""
+                    )
+                name = f"{args[0]}/{args[1]}"
+            case _:
+                raise ValueError("args shuld be one or two")
+
+        race: Race = self.__api.get_instance(Race, name)
         race.load("slug")
         return race
 
