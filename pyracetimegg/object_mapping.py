@@ -116,6 +116,11 @@ class iObject(ABC):
         self._api = api
         self.__id = id
 
+    def __eq__(self, __value: object) -> bool:
+        if type(self) is not type(__value):
+            return False
+        return (self.id == __value.id) and (self._api.site_url == __value._api.site_url)
+
     @property
     def id(self):
         return self.__id
