@@ -73,6 +73,9 @@ class RacetimeGGAPI(object):
         from pyracetimegg.objects.race import Race
 
         json_data = self.__api.fetch_json_from_site("races/data")
+        for race in json_data["races"]:
+            race["ended_at"] = None
+            race["cancelled_at"] = None
         return tuple(Race._load_from_json(self.__api, tmp) for tmp in json_data["races"])
 
     def fetch_user(self, user_id: str):
