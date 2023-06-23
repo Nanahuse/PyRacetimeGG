@@ -201,7 +201,7 @@ class ThrottledRequest(object):
             sleep(sleep_time)
             self.__time += self.__request_cycletime
         else:
-            self.__time += time()
+            self.__time = time()
         return get(url)
 
     def get_json(self, url: str) -> dict[str, Any]:
