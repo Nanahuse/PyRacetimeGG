@@ -5,13 +5,16 @@
 import re
 from typing import overload
 from pyracetimegg.object_mapping import APIBase
+from pyracetimegg.objects.category import Category
+from pyracetimegg.objects.race import Race
+from pyracetimegg.objects.user import User
 
 
 class RacetimeGGAPI(object):
     def __init__(self, site_url: str = "https://racetime.gg/", request_per_second: int = 1) -> None:
         self.__api = APIBase(site_url, request_per_second)
 
-    def search_user(self, *, name: str | None = None, discriminator: str | None = None):
+    def search_user(self, *, name: str | None = None, discriminator: str | None = None) -> tuple[User]:
         """
         search user by name or discriminator
         https://github.com/racetimeGG/racetime-app/wiki/Public-API-endpoints#user-search
@@ -26,8 +29,6 @@ class RacetimeGGAPI(object):
         Returns:
             User
         """
-        from pyracetimegg.objects.user import User
-
         if discriminator is not None:
             if not re.match("[0-9][0-9][0-9][0-9]", discriminator):
                 ValueError("discriminator should be a set of four digits, e.g. '0844'")
@@ -43,9 +44,9 @@ class RacetimeGGAPI(object):
                 ValueError("must be set name or discriminator")
 
         json_data = self.__api.fetch_json_from_site(f"user/search?{query}")
-        return tuple(User._load_from_json(self.__api, tmp) for tmp in json_data["results"])
+        return tuple(self.__api.get_instance(User, tmp) for tmp in json_data["results"])
 
-    def search_user_by_term(self, term: str):
+    def search_user_by_term(self, term: str) -> tuple[User]:
         """
         serch user by name or partial name or (name and discriminator)
 
@@ -59,53 +60,45 @@ class RacetimeGGAPI(object):
         Returns:
             User
         """
-        from pyracetimegg.objects.user import User
-
         json_data = self.__api.fetch_json_from_site(f"user/search?term={term}")
-        return tuple(User._load_from_json(self.__api, tmp) for tmp in json_data["results"])
+        return tuple(self.__api.get_instance(User, tmp) for tmp in json_data["results"])
 
-    def fetch_all_races(self):
+    def fetch_all_races(self) -> tuple[Race]:
         """
         all open and ongoing races
 
         https://github.com/racetimeGG/racetime-app/wiki/Public-API-endpoints#all-races
         """
-        from pyracetimegg.objects.race import Race
-
         json_data = self.__api.fetch_json_from_site("races/data")
         for race in json_data["races"]:
             race["ended_at"] = None
             race["cancelled_at"] = None
-        return tuple(Race._load_from_json(self.__api, tmp) for tmp in json_data["races"])
+        return tuple(self.__api.get_instance(Race, tmp) for tmp in json_data["races"])
 
-    def fetch_user(self, user_id: str):
+    def fetch_user(self, user_id: str) -> User:
         """
         https://github.com/racetimeGG/racetime-app/wiki/Public-API-endpoints#url-fields
 
         Args:
             user_id (str): you can find at URL
         """
-        from pyracetimegg.objects.user import User
-
         user: User = self.__api.get_instance(User, user_id)
         user.load("name")
         return user
 
-    def fetch_category(self, category_slug: str):
+    def fetch_category(self, category_slug: str) -> Category:
         """
         https://github.com/racetimeGG/racetime-app/wiki/Public-API-endpoints#category-detail
 
         Args:
             category_slug (str): you can find at URL
         """
-        from pyracetimegg.objects.category import Category
-
         category: Category = self.__api.get_instance(Category, category_slug)
         category.load("name")
         return category
 
     @overload
-    def fetch_race(self, race_name: str):
+    def fetch_race(self, race_name: str) -> Race:
         """
         https://github.com/racetimeGG/racetime-app/wiki/Public-API-endpoints#race-detail
 
@@ -115,7 +108,7 @@ class RacetimeGGAPI(object):
         ...
 
     @overload
-    def fetch_race(self, category_slug: str, race_slug: str):
+    def fetch_race(self, category_slug: str, race_slug: str) -> Race:
         """
         https://github.com/racetimeGG/racetime-app/wiki/Public-API-endpoints#race-detail
 
@@ -126,8 +119,6 @@ class RacetimeGGAPI(object):
         ...
 
     def fetch_race(self, *args):
-        from pyracetimegg.objects.race import Race
-
         match len(args):
             case 1:
                 if not re.fullmatch("[0-9a-z-]+/[a-z]+-[a-z]+-[0-9]+", args[0]):

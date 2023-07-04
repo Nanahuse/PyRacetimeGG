@@ -7,11 +7,10 @@ from dataclasses import dataclass
 from enum import StrEnum
 from inspect import currentframe
 from PIL.Image import Image
-from typing import Any, TYPE_CHECKING
-from pyracetimegg.object_mapping import iObject, TAG
+from typing import TYPE_CHECKING
+from pyracetimegg.object_mapping import iObject, ID, TAG, DATA
 
 if TYPE_CHECKING:
-    from pyracetimegg.object_mapping import APIBase
     from pyracetimegg.objects.race import PastRaces
 
 
@@ -105,27 +104,25 @@ class User(iObject):
     def past_race(self) -> PastRaces:
         return self._get(currentframe().f_code.co_name)
 
+    def load_all(self):
+        self.load(("past_race", "id"))
+
     def _fetch_from_api(self, tag: TAG):
         match tag:
             case "past_race":
                 from pyracetimegg.objects.race import PastRaces
 
-                self._api.store_data(User, self.id, {"past_race": PastRaces(self)})
-                return self._get(tag)
+                return {"past_race": PastRaces(self)}
             case _:
                 json_data = self._api.fetch_json_from_site(self.data_url)
                 json_data.setdefault("stats", None)
-                self._load_from_json(self._api, json_data)
-                return self._get(tag)
+                _, data = self._format_api_data(json_data)
+                return data
 
-    def _load_all(self):
-        self._fetch_from_api("past_race")
-        self._fetch_from_api("id")
-
-    @classmethod
-    def _load_from_json(cls, api: APIBase, json_: dict[TAG, Any]) -> User:
+    def _format_api_data(self, data_from_api: dict) -> tuple[ID, DATA]:
         output = dict()
-        for key, value in json_.items():
+        id = data_from_api["id"]
+        for key, value in data_from_api.items():
             match key:
                 case "pronouns":
                     output[key] = User.Pronouns.from_str(value)
@@ -144,4 +141,4 @@ class User(iObject):
                         "can_moderate",
                     ):
                         output[key] = value
-        return api.store_data(User, json_["id"], output)
+        return id, output
