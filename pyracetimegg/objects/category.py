@@ -6,12 +6,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import timedelta
 from inspect import currentframe
-from typing import Any, TYPE_CHECKING
-from pyracetimegg.object_mapping import iObject, TAG
+from typing import TYPE_CHECKING
+from pyracetimegg.object_mapping import APIBase, iObject, ID, TAG, DATA
 from pyracetimegg.utils import str2timedelta, place2str
 
 if TYPE_CHECKING:
-    from pyracetimegg.object_mapping import APIBase
     from pyracetimegg.objects.user import User
     from pyracetimegg.objects.race import Race, PastRaces, Goal
 
@@ -80,15 +79,17 @@ class Category(iObject):
     def leaderboard(self) -> dict[str, tuple[LeaderBoardParticipant]]:
         return self._get(currentframe().f_code.co_name)
 
-    def _fetch_from_api(self, tag: TAG) -> Any:
+    def load_all(self):
+        self.load(("past_race", "leaderboard", "id"))
+
+    def _fetch_from_api(self, tag: TAG) -> DATA:
         from pyracetimegg.objects.category import LeaderBoardParticipant
 
         match tag:
             case "past_race":
                 from pyracetimegg.objects.race import PastRaces
 
-                self._api.store_data(Category, self.id, {"past_race": PastRaces(self)})
-                return self._get(tag)
+                return {"past_race": PastRaces(self)}
             case "leaderboard":
                 json_data = self._api.fetch_json_from_site(self.slug, "leaderboards/data")
                 leaderboards = dict()
@@ -98,42 +99,34 @@ class Category(iObject):
                         LeaderBoardParticipant.from_json(self._api, participant)
                         for participant in leaderboard["rankings"]
                     )
-                self._api.store_data(Category, self.id, {"leaderboard": leaderboards})
-                return self._get(tag)
+                return {"leaderboard": leaderboards}
             case _:
                 json_data = self._api.fetch_json_from_site(self.data_url)
-                self._load_from_json(self._api, json_data)
-                return self._get(tag)
+                _, data = self._format_api_data(json_data)
+                return data
 
-    def _load_all(self):
-        self._fetch_from_api("past_race")
-        self._fetch_from_api("leaderboard")
-        self._fetch_from_api("id")
-
-    @classmethod
-    def _load_from_json(cls, api: APIBase, json_: dict[TAG, Any]) -> Category:
+    def _format_api_data(self, data_from_api: dict) -> tuple[ID, DATA]:
         from pyracetimegg.objects.race import Race, Goal
         from pyracetimegg.objects.user import User
 
-        id = json_["slug"]
+        id = data_from_api["slug"]
         output = dict()
-        for key, value in json_.items():
+        for key, value in data_from_api.items():
             match key:
                 case "owners" | "moderators":
-                    tmp_list = list()
-                    output[key] = tuple(User._load_from_json(api, tmp) for tmp in value)
+                    output[key] = tuple(self._api.get_instance(User, tmp) for tmp in value)
                 case "goals":
                     output[key] = tuple(Goal(goal, False) for goal in value)
                 case "current_races":
-                    output[key] = tuple(Race._load_from_json(api, race) for race in tmp_list)
+                    output[key] = tuple(self._api.get_instance(Race, race) for race in value)
                 case "emotes":
-                    output[key] = tuple(Emote(emote, url, api) for emote, url in value.items())
+                    output[key] = tuple(Emote(emote, url, self._api) for emote, url in value.items())
                 case "current_races":
-                    output[key] = tuple(Race._load_from_json(api, tmp) for tmp in value)
+                    output[key] = tuple(self._api.get_instance(Race, tmp) for tmp in value)
                 case _:
                     if key in ("name", "short_name", "image", "info", "streaming_required"):
                         output[key] = value
-        return api.store_data(Category, id, output)
+        return id, output
 
 
 @dataclass(frozen=True)
@@ -169,7 +162,7 @@ class LeaderBoardParticipant(object):
         from pyracetimegg.objects.user import User
 
         return LeaderBoardParticipant(
-            User._load_from_json(api, json_data["user"]),
+            api.get_instance(User, json_data["user"]),
             json_data["place"],
             json_data["score"],
             str2timedelta(json_data["best_time"]),

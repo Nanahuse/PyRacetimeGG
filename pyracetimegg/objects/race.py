@@ -7,14 +7,14 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import StrEnum
 from inspect import currentframe
-from typing import Any, Sequence, overload, TYPE_CHECKING
+from threading import Lock
+from typing import Sequence, overload, TYPE_CHECKING
 from sys import maxsize
-from pyracetimegg.object_mapping import iObject, TAG
+from pyracetimegg.object_mapping import APIBase, iObject, ID, DATA, TAG
 from pyracetimegg.utils import str2datetime, str2timedelta, place2str
 
 if TYPE_CHECKING:
     from typing_extensions import SupportsIndex
-    from pyracetimegg.object_mapping import APIBase
     from pyracetimegg.objects.user import User
     from pyracetimegg.objects.category import Category
 
@@ -79,7 +79,7 @@ class Race(iObject):
             from pyracetimegg.objects.user import User
 
             return Race.Entrant(
-                User._load_from_json(api, json_data["user"]),
+                api.get_instance(User, json_data["user"]),
                 json_data.get("team", None),
                 Race.Entrant.Status.from_str(json_data["status"]["value"]),
                 str2timedelta(json_data["finish_time"]) if json_data["finish_time"] is not None else None,
@@ -259,26 +259,25 @@ class Race(iObject):
     def entrants_count_inactive(self) -> int:
         return self._get(currentframe().f_code.co_name)
 
-    def _fetch_from_api(self, tag: TAG):
-        json_data = self._api.fetch_json_from_site(self.data_url)
-        self._load_from_json(self._api, json_data)
-        return self._get(tag)
-
-    def _load_all(self):
+    def load_all(self):
         self._fetch_from_api("category")
 
-    @classmethod
-    def _load_from_json(cls, api: APIBase, json_: dict[TAG, Any]) -> Race:
+    def _fetch_from_api(self, tag: TAG):
+        json_data = self._api.fetch_json_from_site(self.data_url)
+        _, data = self._format_api_data(json_data)
+        return data
+
+    def _format_api_data(self, data_from_api: dict) -> tuple[ID, DATA]:
         from pyracetimegg.objects.user import User
         from pyracetimegg.objects.category import Category
 
         output = dict()
-        id = json_["name"]
+        id = data_from_api["name"]
         category_slug, slug = id.split("/")
-        json_.setdefault("category", {"slug": category_slug})
-        json_["slug"] = slug
+        data_from_api.setdefault("category", {"slug": category_slug})
+        data_from_api["slug"] = slug
 
-        for key, value in json_.items():
+        for key, value in data_from_api.items():
             match key:
                 case "status":
                     output[key] = Race.Status.from_str(value["value"])
@@ -289,16 +288,16 @@ class Race(iObject):
                 case "time_limit" | "start_delay" | "chat_message_delay":
                     output[key] = str2timedelta(value) if value is not None else None
                 case "category":
-                    output[key] = Category._load_from_json(api, value)
+                    output[key] = self._api.get_instance(Category, value)
                 case "opened_by" | "recorded_by":
                     if value is None:
                         output[key] = None
                     else:
-                        output[key] = User._load_from_json(api, value)
+                        output[key] = self._api.get_instance(User, value)
                 case "monitors":
-                    output[key] = tuple(User._load_from_json(api, tmp) for tmp in value)
+                    output[key] = tuple(self._api.get_instance(User, tmp) for tmp in value)
                 case "entrants":
-                    output[key] = tuple(Race.Entrant.from_json(api, tmp) for tmp in value)
+                    output[key] = tuple(Race.Entrant.from_json(self._api, tmp) for tmp in value)
                 case _:
                     if key in (
                         "slug",
@@ -325,7 +324,7 @@ class Race(iObject):
                     ):
                         output[key] = value
 
-        return api.store_data(Race, id, output)
+        return id, output
 
 
 class PastRaces(Sequence[Race]):
@@ -333,7 +332,7 @@ class PastRaces(Sequence[Race]):
         from pyracetimegg.objects.user import User
         from pyracetimegg.objects.category import Category
 
-        self._api = obj._api
+        self.__api = obj._api
         match obj:
             case Category():
                 self._base_path = obj.slug
@@ -341,27 +340,42 @@ class PastRaces(Sequence[Race]):
                 self._base_path = f"user/{obj.id}"
             case _:
                 raise ValueError()
+        self.__lock = Lock()
+        with self.__lock:
+            self.__race_cache: list[Race | None] | None = None
 
-        json_data = self._fetch_json(1)
+    def __fetch_json(self, page_num: int):
+        return self.__api.fetch_json_from_site(self._base_path, f"races/data?show_entrants=yes&page={page_num}")
 
-        self._race_cache: list[Race | None] = [None] * json_data["count"]
-
-        for i, race in enumerate(json_data["races"]):
-            self._race_cache[i] = Race._load_from_json(self._api, race)
-
-    def _fetch_json(self, page_num: int):
-        return self._api.fetch_json_from_site(self._base_path, f"races/data?show_entrants=yes&page={page_num}")
+    def __init_list(self):
+        with self.__lock:
+            if self.__race_cache is not None:
+                return
+            json_data = self.__fetch_json(1)
+            self.__race_cache: list[Race | None] = [None] * json_data["count"]
+            for i, race in enumerate(json_data["races"]):
+                self.__race_cache[i] = self.__api.get_instance(Race, race)
 
     def load(self):
         """
         CAPTION: All data will be loaded. Take a large amount of time.
+        If data has loaded, reload
         """
+        self.clear()
+        self.__init_list()
         for _ in self:
             pass
 
     @property
-    def is_loaded(self):
-        return None in self._race_cache
+    def have_loaded(self):
+        """
+        have all race been loaded
+
+        Returns:
+            _type_: _description_
+        """
+        self.__init_list()
+        return None in self.__race_cache
 
     @overload
     def __getitem__(self, item: int) -> Race:
@@ -372,6 +386,7 @@ class PastRaces(Sequence[Race]):
         ...
 
     def __getitem__(self, item):
+        self.__init_list()
         match item:
             case int():
                 length = len(self)
@@ -384,49 +399,64 @@ class PastRaces(Sequence[Race]):
                 else:
                     raise IndexError()
 
-                if self._race_cache[index] is not None:
-                    return self._race_cache[index]
-                else:
-                    i_page = index // 10 + 1  # 0-9 => 1, 10-19 => 2, ...
-                    json_data = self._fetch_json(i_page)
+                with self.__lock:
+                    if self.__race_cache[index] is not None:
+                        return self.__race_cache[index]
+                    else:
+                        i_page = index // 10 + 1  # 0-9 => 1, 10-19 => 2, ...
+                        json_data = self.__fetch_json(i_page)
 
-                    for i, race in enumerate(json_data["races"]):
-                        self._race_cache[(i_page - 1) * 10 + i] = Race._load_from_json(self._api, race)
-                    return self._race_cache[index]
+                        for i, race in enumerate(json_data["races"]):
+                            try:
+                                self.__race_cache[(i_page - 1) * 10 + i] = self.__api.get_instance(Race, race)
+                            except IndexError:
+                                self.__race_cache.append(self.__api.get_instance(Race, race))
+                        return self.__race_cache[index]
             case slice():
                 start, stop, step = item.indices(len(self))
                 return tuple(self[index] for index in range(start, stop, step))
 
     def __iter__(self):
-        for i in range(len(self)):
-            yield self[i]
+        self.__init_list()
+        i = 0
+        while True:
+            try:
+                yield self[i]
+            except IndexError:
+                break
+            i += 1
 
     def __contains__(self, key: object) -> bool:
         """
         CAPTION: All data will be loaded. Take a large amount of time.
         """
-        if not self.is_loaded:
+        if not self.have_loaded:
             self.load()
-        return key in self._race_cache
+        return key in self.__race_cache
 
     def __len__(self):
-        return len(self._race_cache)
+        self.__init_list()
+        return len(self.__race_cache)
 
     def index(self, value: Race, start: SupportsIndex = 0, stop: SupportsIndex = maxsize) -> int:
         """
         CAPTION: All data will be loaded. Take a large amount of time.
         """
-        if not self.is_loaded:
+        if not self.have_loaded:
             self.load()
-        return self._race_cache.index(value, start, stop)
+        return self.__race_cache.index(value, start, stop)
 
     def count(self, value: Race) -> int:
         """
         CAPTION: All data will be loaded. Take a large amount of time.
         """
-        if not self.is_loaded:
+        if not self.have_loaded:
             self.load()
-        return self._race_cache.count(value)
+        return self.__race_cache.count(value)
+
+    def clear(self):
+        with self.__lock:
+            self.__race_cache = None
 
 
 @dataclass(frozen=True)
