@@ -5,7 +5,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from enum import StrEnum
+from enum import Enum
 from inspect import currentframe
 from threading import Lock
 from typing import Sequence, overload, TYPE_CHECKING
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
 
 class Race(iObject):
-    class Status(StrEnum):
+    class Status(Enum):
         OPEN = "open"
         INVITATIONAL = "invitational"
         PENDING = "pending"
@@ -37,7 +37,7 @@ class Race(iObject):
 
     @dataclass(frozen=True)
     class Entrant(object):
-        class Status(StrEnum):
+        class Status(Enum):
             REQUESTED = "requested"  # requested to join
             INVITED = "invited"  # invited to join
             DECLINED = "declined"  # declined invitation

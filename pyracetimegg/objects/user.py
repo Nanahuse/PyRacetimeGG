@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 from dataclasses import dataclass
-from enum import StrEnum
+from enum import Enum
 from inspect import currentframe
 from PIL.Image import Image
 from typing import TYPE_CHECKING
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 
 class User(iObject):
-    class Pronouns(StrEnum):
+    class Pronouns(Enum):
         NONE = "none"
         SHE_HER = "she/her"
         HE_HIM = "he/him"
