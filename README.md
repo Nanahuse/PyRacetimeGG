@@ -28,8 +28,9 @@ user.past_race[0].started_at
 
 # install
 ```
-pip install git+https://github.com/Nanahuse/PyRacetimeGG
+pip install pyracetimegg
 ```
+[PyPI pyracetimegg](https://pypi.org/project/pyracetimegg/)
 
 # functions
 ## fetch_user
