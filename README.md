@@ -11,7 +11,7 @@ This library has the following features.
 * Thread safe
 
 
-Please refer to the [Test Code](https://github.com/Nanahuse/PyRacetimeGG/tree/main/test) for how to use. 
+Please refer to the [Test Code](https://github.com/Nanahuse/PyRacetimeGG/blob/main/test/test_api.py) for how to use. 
 
 
 ```python
@@ -21,29 +21,38 @@ user = api.search_user(name="Nanahuse")[0]
 user.past_race[0].started_at
 ```    
 
-# index
-- [install](#install)
-- [functions](#functions)
+# Index
+- [Install](#install)
+- [Functions](#functions)
 - [Tips](#tips)
 
-# install
+# Install
 ```
 pip install pyracetimegg
 ```
 [PyPI pyracetimegg](https://pypi.org/project/pyracetimegg/)
 
-# functions
+# Functions
 ## fetch_user
 by user_id    
 https://github.com/racetimeGG/racetime-app/wiki/Public-API-endpoints#user-data
+
+## fetch_user_by_url
+by user page url    
 
 ## fetch_category
 by category slug  
 https://github.com/racetimeGG/racetime-app/wiki/Public-API-endpoints#category-detail
 
+## fetch_category_by_url
+by category page url    
+
 ## fetch_race
 by race slug  
 https://github.com/racetimeGG/racetime-app/wiki/Public-API-endpoints#race-detail
+
+## fetch_race_by_url
+by race page url    
 
 ## fetch_by_url
 get data instance by url.  
@@ -55,14 +64,14 @@ by name or/and discriminator
 https://github.com/racetimeGG/racetime-app/wiki/Public-API-endpoints#user-search
 
 ## search_user_by_term
-name partial match serch  
+name partial match search  
 https://github.com/racetimeGG/racetime-app/wiki/Public-API-endpoints#user-search
 
 
 # Tips
 ## Update data or manage fetch timing
 'load' method will be useful, when you'd like to get latest data or manage fetch timing.
-User, Category, Race, PastRace have load.
+User, Category, Race, PastRace have 'load' method.
 
 
 ## How to know id or slug
@@ -75,10 +84,10 @@ In racetime.gg, Game title is called "Category".
 "slug" is an identifier for "Category".  
 In many cases, it is an abbreviation using the first letter of the game title.
 1. Check category page URL ( e.g. https://racetime.gg/smw )
-1. The last string is category slug ( e.g. swm).
+1. The last string is category slug ( e.g. smw).
 
 ### How to know race slug
-Every race has a separate identifier called slug
+Every race has a separate identifier called slug.
 It is a form of two words and a four-digit number joined by a hyphen. (word-word-1234)
 
 1. Check race page URL ( e.g. https://racetime.gg/smw/comic-baby-9383 )

@@ -48,15 +48,12 @@ class RacetimeGGAPI(object):
 
     def search_user_by_term(self, term: str) -> tuple[User]:
         """
-        serch user by name or partial name or (name and discriminator)
+        search user by name or partial name or (name and discriminator)
 
         https://github.com/racetimeGG/racetime-app/wiki/Public-API-endpoints#user-search
 
         Args:
             term (str): term
-            site_url (user, optional):
-                if you want to connect a site other than racetime.gg
-                Defaults to https://racetime.gg/.
         Returns:
             User
         """
@@ -86,6 +83,14 @@ class RacetimeGGAPI(object):
         user.load("name")
         return user
 
+    def fetch_user_by_url(self, url: str) -> User:
+        try:
+            if re.fullmatch(self.__api.get_url("user", "[0-9a-zA-Z]+"), url):
+                return self.fetch_user(url.split("/")[-1])
+        except Exception:
+            pass
+        raise ValueError(f"wrong url: url={url}")
+
     def fetch_category(self, category_slug: str) -> Category:
         """
         https://github.com/racetimeGG/racetime-app/wiki/Public-API-endpoints#category-detail
@@ -96,6 +101,14 @@ class RacetimeGGAPI(object):
         category: Category = self.__api.get_instance(Category, category_slug)
         category.load("name")
         return category
+
+    def fetch_category_by_url(self, url: str) -> Category:
+        try:
+            if re.fullmatch(self.__api.get_url("[0-9a-z-]+"), url):
+                return self.fetch_category(url.split("/")[-1])
+        except Exception:
+            pass
+        raise ValueError(f"wrong url: url={url}")
 
     @overload
     def fetch_race(self, race_name: str) -> Race:
@@ -146,13 +159,26 @@ class RacetimeGGAPI(object):
         race.load("slug")
         return race
 
+    def fetch_race_by_url(self, url: str) -> Race:
+        try:
+            if re.fullmatch(self.__api.get_url("[0-9a-z-]+/[a-z]+-[a-z]+-[0-9]+"), url):
+                category_slug, race_slug = url.split("/")[-2:]
+                return self.fetch_race(category_slug, race_slug)
+        except Exception:
+            pass
+        raise ValueError(f"wrong url: url={url}")
+
     def fetch_by_url(self, url: str):
-        if re.fullmatch(self.__api.get_url("user", "[0-9a-zA-Z]+"), url):
-            return self.fetch_user(url.split("/")[-1])
-        elif re.fullmatch(self.__api.get_url("[0-9a-z-]+"), url):
-            return self.fetch_category(url.split("/")[-1])
-        elif re.fullmatch(self.__api.get_url("[0-9a-z-]+/[a-z]+-[a-z]+-[0-9]+"), url):
-            category_slug, race_slug = url.split("/")[-2:]
-            return self.fetch_race(category_slug, race_slug)
-        else:
-            raise ValueError(f"wrong url: url={url}")
+        try:
+            return self.fetch_user_by_url(url)
+        except ValueError:
+            pass
+        try:
+            return self.fetch_category_by_url(url)
+        except ValueError:
+            pass
+        try:
+            return self.fetch_race_by_url(url)
+        except ValueError:
+            pass
+        raise ValueError(f"wrong url: url={url}")
