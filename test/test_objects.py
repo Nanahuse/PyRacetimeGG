@@ -11,8 +11,8 @@ def test_user():
     user = api.fetch_user("xldAMBlqvY3aOP57")
     json_data = api_json.fetch_json("https://racetime.gg/user/xldAMBlqvY3aOP57/data")
     assert user.id == json_data["id"]
-    assert user.url == json_data["url"]
-    assert user.data_url == json_data["url"] + "/data"
+    assert user.url == "https://racetime.gg" + json_data["url"]
+    assert user.data_url == "https://racetime.gg" + json_data["url"] + "/data"
     assert user.name == json_data["name"]
     assert user.discriminator == json_data["discriminator"]
     assert user.full_name == json_data["full_name"]
@@ -51,8 +51,8 @@ def test_category():
     assert category.name == "Super Mario World"
     assert category.short_name == "SMW"
     assert category.slug == "smw"
-    assert category.url == "/smw"
-    assert category.data_url == "/smw/data"
+    assert category.url == "https://racetime.gg/smw"
+    assert category.data_url == "https://racetime.gg/smw/data"
     assert category.image == "https://racetime.gg/media/Super_Mario_World-285x380.jpg"
     assert category.info == ""
     assert category.streaming_required is False
@@ -86,11 +86,11 @@ def test_race():
     assert race.version == 28
     assert race.name == "smw/comic-baby-9383"
     assert race.status is Race.Status.FINISHED
-    assert race.url == "/smw/comic-baby-9383"
-    assert race.data_url == "/smw/comic-baby-9383/data"
-    assert race.websocket_url == "/ws/race/comic-baby-9383"
-    assert race.websocket_bot_url == "/ws/o/bot/comic-baby-9383"
-    assert race.websocket_oauth_url == "/ws/o/race/comic-baby-9383"
+    assert race.url == "https://racetime.gg/smw/comic-baby-9383"
+    assert race.data_url == "https://racetime.gg/smw/comic-baby-9383/data"
+    assert race.websocket_url == "https://racetime.gg/ws/race/comic-baby-9383"
+    assert race.websocket_bot_url == "https://racetime.gg/ws/o/bot/comic-baby-9383"
+    assert race.websocket_oauth_url == "https://racetime.gg/ws/o/race/comic-baby-9383"
 
     assert race.category.slug == "smw"
 

@@ -40,3 +40,17 @@ def test_fetch_race():
     assert race == race2
     race3 = api.fetch_race("smw", "mega-dupe-1280")  # overload method
     assert race != race3
+
+
+def test_fetch_by_url():
+    test_user = api.fetch_user_by_url("https://racetime.gg/user/xldAMBlqvY3aOP57")
+    user = api.fetch_user("xldAMBlqvY3aOP57")
+    assert test_user == user
+
+    test_category = api.fetch_category_by_url("https://racetime.gg/smw")
+    category = api.fetch_category("smw")
+    assert test_category == category
+
+    test_race = api.fetch_race_by_url("https://racetime.gg/smw/comic-baby-9383")
+    race = api.fetch_race("smw/comic-baby-9383")
+    assert test_race == race

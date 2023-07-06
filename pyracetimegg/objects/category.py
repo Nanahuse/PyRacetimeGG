@@ -30,7 +30,7 @@ class Category(iObject):
 
     @property
     def url(self):
-        return f"/{self.slug}"
+        return self._api.get_url(self.slug)
 
     @property
     def data_url(self):
@@ -91,7 +91,7 @@ class Category(iObject):
 
                 return {"past_race": PastRaces(self)}
             case "leaderboard":
-                json_data = self._api.fetch_json_from_site(self.slug, "leaderboards/data")
+                json_data = self._api.fetch_json(f"{self.url}/leaderboards/data")
                 leaderboards = dict()
                 for leaderboard in json_data["leaderboards"]:
                     goal_name = leaderboard["goal"]
@@ -101,7 +101,7 @@ class Category(iObject):
                     )
                 return {"leaderboard": leaderboards}
             case _:
-                json_data = self._api.fetch_json_from_site(self.data_url)
+                json_data = self._api.fetch_json(self.data_url)
                 _, data = self._format_api_data(json_data)
                 return data
 

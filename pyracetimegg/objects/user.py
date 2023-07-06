@@ -43,7 +43,7 @@ class User(iObject):
 
     @property
     def url(self):
-        return f"/user/{self.id}"
+        return self._api.get_url("user", self.id)
 
     @property
     def data_url(self):
@@ -114,7 +114,7 @@ class User(iObject):
 
                 return {"past_race": PastRaces(self)}
             case _:
-                json_data = self._api.fetch_json_from_site(self.data_url)
+                json_data = self._api.fetch_json(self.data_url)
                 json_data.setdefault("stats", None)
                 _, data = self._format_api_data(json_data)
                 return data

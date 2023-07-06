@@ -119,7 +119,7 @@ class Race(iObject):
 
     @property
     def url(self):
-        return f"/{self.name}"
+        return self._api.get_url(self.name)
 
     @property
     def data_url(self):
@@ -127,15 +127,15 @@ class Race(iObject):
 
     @property
     def websocket_url(self):
-        return f"/ws/race/{self.slug}"
+        return self._api.get_url("ws/race", self.slug)
 
     @property
     def websocket_bot_url(self):
-        return f"/ws/o/bot/{self.slug}"
+        return self._api.get_url("ws/o/bot", self.slug)
 
     @property
     def websocket_oauth_url(self):
-        return f"/ws/o/race/{self.slug}"
+        return self._api.get_url("ws/o/race", self.slug)
 
     @property
     def version(self) -> int:
@@ -263,7 +263,7 @@ class Race(iObject):
         self._fetch_from_api("category")
 
     def _fetch_from_api(self, tag: TAG):
-        json_data = self._api.fetch_json_from_site(self.data_url)
+        json_data = self._api.fetch_json(self.data_url)
         _, data = self._format_api_data(json_data)
         return data
 

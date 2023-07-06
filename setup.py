@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="pyracetimegg",
-    version="2.2.0",
+    version="2.3.0",
     packages=find_packages(),
     install_requires=["Pillow>=9.5.0", "requests>=2.31.0", "tzdata"],
     license="MIT",
