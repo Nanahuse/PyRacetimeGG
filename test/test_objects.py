@@ -1,8 +1,8 @@
 from pyracetimegg import RacetimeGGAPI
 from pyracetimegg.object_mapping import APIBase
 
-api = RacetimeGGAPI(request_per_second=3)
-api_json = APIBase("https://racetime.gg", 2)
+api = RacetimeGGAPI()
+api_json = APIBase("https://racetime.gg")
 
 
 def test_user():

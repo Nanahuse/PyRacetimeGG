@@ -5,7 +5,7 @@
 
 from pyracetimegg.api import RacetimeGGAPI
 
-api = RacetimeGGAPI(request_per_second=2)
+api = RacetimeGGAPI()
 
 
 def test_search_user():
